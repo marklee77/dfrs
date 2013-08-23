@@ -29,8 +29,11 @@ def gen_linear_prob(seed=None, num_dimensions=1, num_bins=0, num_items=0,
             str(item), str(itemmin))
         itemfuncs.append(itemfunc)
 
-    return {
+    problem = {
         'seed' : seed, 'num_dimensions' : num_dimensions, 'num_bins' : num_bins,
         'num_items' : num_items, 'cov' : cov, 'slack' : slack, 'bins' : bins,
         'itemfuncs' : itemfuncs
     }
+
+    return dict(list(problem.items()) + list(kwargs.items()))
+

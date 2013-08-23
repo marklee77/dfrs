@@ -7,11 +7,13 @@ from random import sample
 import time
 
 from numpy import array
+from yaml import load as yload
 
 from vectorpack.packs import get_pack_by_name
 from vectorpack.sorts import get_sort_key_by_name
 from vectorpack.selects import get_select_by_name
 from vectorpack.util import verify_mapping, negate_func, zero
+
 
 def parse_sort_cmdline(sortcmd):
     args = sortcmd.split(":")
@@ -71,7 +73,10 @@ def vpsolver(pack=None, select=None, itemsort=None, binsort=None, split=1,
     bin_key = parse_sort_cmdline(binsort)
     select_key = parse_select_cmdline(select)
 
-    mapping = []
+    itemfuncs = problem.get('itemfuncs', [])
+    bins = problem.get('bins', [])
+
+    mapping = [None] * len(itemfuncs)
 
     y_upper = 1.0
     y_lower = 0.0
@@ -81,18 +86,20 @@ def vpsolver(pack=None, select=None, itemsort=None, binsort=None, split=1,
     start_time = time.process_time()
     while y_upper - y_lower > y_threshold:
         y = (y_upper + y_lower) / 2
-        item_insts = [eval(i)(y) for i in items]
+        item_insts = [eval(i)(y) for i in itemfuncs]
         # FIXME: could be smarter and only sort bins once...
-        mapping = pack(items=item_insts, bins=bins, 
+        curr_mapping = pack_func(items=item_insts, bins=bins, 
                        item_key=item_key, bin_key=bin_key, 
                        select_key=select_key, split=split)
-        if mapping.count(None) > 0:
+        if curr_mapping.count(None) > 0:
             y_upper = y
         else:
+            mapping = curr_mapping[:]
             y_lower = y
+    y = y_lower
     stop_time = time.process_time()
 
-    return {
+    solution = {
         'pack' : pack,
         'itemsort' : itemsort,
         'binsort' : binsort,
@@ -105,4 +112,6 @@ def vpsolver(pack=None, select=None, itemsort=None, binsort=None, split=1,
         'bincount' : len(Counter(mapping)),
         'verified' : verify_mapping(items=item_insts, bins=bins, mapping=mapping),
         'runtime' : stop_time - start_time,
-    }.update(problem)
+    }
+    solution.update(problem)
+    return solution

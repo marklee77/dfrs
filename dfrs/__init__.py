@@ -1,2 +1,2 @@
 from .genprob import *
-from .solver.py import vpsolver
+from .solvers import vpsolver
