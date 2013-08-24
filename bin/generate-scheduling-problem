@@ -50,7 +50,7 @@ def main(argv=None):
     print('argshash: ' + sha1(str(vars(args)).encode('utf-8')).hexdigest())
     print(dump({'args' : vars(args)}, Dumper=Dumper), end='')
     print(dump({'bins' : bins }, Dumper=Dumper), end='')
-    print(dump({'items' : itemfuncs }, Dumper=Dumper), end='')
+    print(dump({'itemfuncs' : itemfuncs }, Dumper=Dumper), end='')
 
 if __name__ == "__main__":
     main()
