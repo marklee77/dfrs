@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+# FIXME: theoretically, slack and load should be vectors?
+
+def main(argv=None):
+    from argparse import ArgumentParser
+    from hashlib import sha1
+    import random
+    from yaml import dump
+    try:
+        from yaml import CDumper as Dumper
+    except ImportError:
+        from yaml import Dumper
+
+    parser = ArgumentParser(description="Generate a random problem instance.")
+    parser.add_argument('-s', '--seed', type=int, help='seed for random number generator')
+    parser.add_argument('-d', '--num_dimensions', type=int, help='number of dimensions')
+    parser.add_argument('-n', '--num_nodes', type=int, help='number of nodes')
+    parser.add_argument('-j', '--num_jobs', type=int, help='number of jobs')
+    parser.add_argument('-c', '--cov', type=float, help='bin dimension cov')
+    parser.add_argument('-k', '--slack', type=float, help='slack')
+    parser.add_argument('-N', '--note', help='note')
+
+    args = parser.parse_args()
+
+    random.seed(args.seed) 
+
+    nodes = [[max(1, min(int(random.normalvariate(50, 50 * args.cov)), 100))
+             for i in range(args.num_dimensions)]
+             for j in range(args.num_nodes)]
+
+    nodedim_totals = [sum(d) for d in zip(*nodes)]
+
+    jobs_bounds = [[sorted([random.randint(1, 100), random.randint(1, 100)])
+                    for i in range(args.num_dimensions)] 
+                    for j in range(args.num_jobs)]
+
+    jobdim_median_totals = [sum(sum(d) for d in j) // 2 
+                            for j in zip(*jobs_bounds)]
+
+    jobs_bounds = [[tuple(max(1, int(b * (1.0 - args.slack) * nodedim_total / jobdim_median_total)) for b in d) for d, nodedim_total, jobdim_median_total in zip(job_bounds, nodedim_totals, jobdim_median_totals)] for job_bounds in jobs_bounds]
+    jobdim_median_totals = [sum(sum(d) for d in j) // 2 
+                            for j in zip(*jobs_bounds)]
+
+    jobs = ['lambda x: [x*(b - a) + a for a, b in %s]' % (job_bounds) for
+            job_bounds in jobs_bounds]
+
+    print('argshash: ' + sha1(str(vars(args)).encode('utf-8')).hexdigest())
+    print(dump({'args' : vars(args)}, Dumper=Dumper), end='')
+    print(dump({'nodes' : nodes }, Dumper=Dumper), end='')
+    print(dump({'jobs' : jobs }, Dumper=Dumper), end='')
+
+if __name__ == "__main__":
+    main()

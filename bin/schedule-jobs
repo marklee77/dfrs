@@ -104,8 +104,8 @@ def main(argv=None):
     else:
         raise SystemExit("error: can't find file %s" % args.input)
 
-    itemfuncs = problem.get('itemfuncs', None)
-    bins = problem.get('bins', None)
+    jobs = problem.get('jobs', None)
+    nodes = problem.get('nodes', None)
     pack = get_pack_by_name(args.pack)
     item_key = parse_sort_cmdline(args.itemsort)
     bin_key = parse_sort_cmdline(args.binsort)
@@ -142,7 +142,7 @@ def main(argv=None):
         mcoll = mclient[db][collection]
         if mcoll.find_one(solution) is not None:
             raise SystemExit('Solution To This Problem Already Exists!')
-    mapping = [None] * len(itemfuncs)
+    mapping = [None] * len(jobs)
 
     y_upper = 1.0
     y_lower = 0.0
@@ -152,9 +152,9 @@ def main(argv=None):
     start_time = time.process_time()
     while y_upper - y_lower > y_threshold:
         y = (y_upper + y_lower) / 2
-        item_insts = [eval(i)(y) for i in itemfuncs]
+        items = [eval(job)(y) for job in jobs]
         # FIXME: could be smarter and only sort bins once...
-        curr_mapping = pack(items=item_insts, bins=bins,
+        curr_mapping = pack(items=items, bins=nodes,
                        item_key=item_key, bin_key=bin_key,
                        select_key=select_key, split=split)
         if curr_mapping.count(None) > 0:
@@ -172,7 +172,8 @@ def main(argv=None):
         'mapping' : mapping,
         'failcount' : mapping.count(None),
         'bincount' : len(Counter(mapping)),
-        'verified' : verify_mapping(items=item_insts, bins=bins, mapping=mapping),
+        'verified' : verify_mapping(items=[eval(job)(y) for job in jobs], 
+                                    bins=nodes, mapping=mapping),
         'runtime' : stop_time - start_time,
     })
 
