@@ -41,7 +41,7 @@ def main(argv=None):
     jobdim_median_totals = [sum(sum(d) for d in j) // 2 
                             for j in zip(*jobs_bounds)]
 
-    jobs = ['lambda x: [x*(b - a) + a for a, b in %s]' % (job_bounds) for
+    jobs = ['lambda x: [[x*(b - a) + a for a, b in %s]]' % (job_bounds) for
             job_bounds in jobs_bounds]
 
     print('argshash: ' + sha1(str(vars(args)).encode('utf-8')).hexdigest())

@@ -5,6 +5,7 @@ from argparse import ArgumentParser
 from collections import Counter
 from datetime import datetime
 from functools import partial
+from itertools import chain 
 from os.path import isfile
 from random import sample
 from sys import stdin, stdout
@@ -152,7 +153,7 @@ def main(argv=None):
     start_time = time.process_time()
     while y_upper - y_lower > y_threshold:
         y = (y_upper + y_lower) / 2
-        items = [eval(job)(y) for job in jobs]
+        items = list(chain(*[eval(job)(y) for job in jobs]))
         # FIXME: could be smarter and only sort bins once...
         curr_mapping = pack(items=items, bins=nodes,
                        item_key=item_key, bin_key=bin_key,
@@ -172,8 +173,9 @@ def main(argv=None):
         'mapping' : mapping,
         'failcount' : mapping.count(None),
         'bincount' : len(Counter(mapping)),
-        'verified' : verify_mapping(items=[eval(job)(y) for job in jobs], 
-                                    bins=nodes, mapping=mapping),
+        'verified' : verify_mapping(
+                         items=list(chain(*[eval(job)(y) for job in jobs])), 
+                         bins=nodes, mapping=mapping),
         'runtime' : stop_time - start_time,
     })
 
