@@ -32,7 +32,7 @@ setup(
     author='Mark Stillwell',
     author_email='marklee@fortawesome.org',
     packages=['dfrs'],
-    scripts=['bin/schedule-jobs', 'bin/generate-scheduling-problem'],
+    scripts=['bin/schedule-jobs', 'bin/generate-linear-scheduling-problem'],
     url='http://pypi.python.org/pypi/PyDOE/',
     license='LICENSE.txt',
     description='Vector Packing Heurisitcs',
