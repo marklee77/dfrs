@@ -34,12 +34,14 @@ def main(argv=None):
                     for i in range(args.num_dimensions)] 
                     for j in range(args.num_jobs)]
 
-    jobdim_median_totals = [sum(sum(d) for d in j) // 2 
-                            for j in zip(*jobs_bounds)]
+    jobdim_min_totals = [sum(mn for mn, mx in d)
+                            for d in zip(*jobs_bounds)]
 
-    jobs_bounds = [[tuple(max(1, int(b * (1.0 - args.slack) * nodedim_total / jobdim_median_total)) for b in d) for d, nodedim_total, jobdim_median_total in zip(job_bounds, nodedim_totals, jobdim_median_totals)] for job_bounds in jobs_bounds]
-    jobdim_median_totals = [sum(sum(d) for d in j) // 2 
-                            for j in zip(*jobs_bounds)]
+    jobs_bounds = [[tuple(max(1, int(
+        b * (1.0 - args.slack) * nodedim_total / jobdim_min_total)) 
+        for b in d) for d, nodedim_total, jobdim_min_total in 
+        zip(job_bounds, nodedim_totals, jobdim_min_totals)] 
+        for job_bounds in jobs_bounds]
 
     jobs = ['lambda x: [[x*(b - a) + a for a, b in %s]]' % (job_bounds) for
             job_bounds in jobs_bounds]
